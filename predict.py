@@ -11,7 +11,7 @@ from model.MVANet import inf_MVANet
 import ttach as tta
 
 torch.cuda.set_device(0)
-ckpt_path = '/home/vanessa/code/HRSOD/MVANet-main/saved_model/MVANet/'
+ckpt_path = '.'
 args = {
     'crf_refine': True,
     'save_results': True

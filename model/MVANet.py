@@ -6,6 +6,10 @@ from einops import rearrange
 from torch import nn
 from .SwinTransformer import SwinB
 
+def safe_round(value):
+    if torch.is_tensor(value):
+        return round(value.item())
+    return round(value)
 
 def get_activation_fn(activation):
     """Return an activation function given a string"""
@@ -119,7 +123,7 @@ class MCLM(nn.Module):
         pools = []
         for pool_ratio in self.pool_ratios:
              # b,c,h,w
-            tgt_hw = (round(h / pool_ratio), round(w / pool_ratio))
+            tgt_hw = (safe_round(h / pool_ratio), safe_round(w / pool_ratio))
             pool = F.adaptive_avg_pool2d(concated_locs, tgt_hw)
             pools.append(rearrange(pool, 'b c h w -> (h w) b c'))
             if self.g_pos is None:
@@ -195,7 +199,7 @@ class inf_MCLM(nn.Module):
         pools = []
         for pool_ratio in self.pool_ratios:
              # b,c,h,w
-            tgt_hw = (round(h / pool_ratio), round(w / pool_ratio))
+            tgt_hw = (safe_round(h / pool_ratio), safe_round(w / pool_ratio))
             pool = F.adaptive_avg_pool2d(concated_locs, tgt_hw)
             pools.append(rearrange(pool, 'b c h w -> (h w) b c'))
             # if self.g_pos is None:
@@ -267,7 +271,7 @@ class MCRM(nn.Module):
         loc = loc * rearrange(token_attention_map, 'b c (hg h) (wg w) -> (hg wg b) c h w', hg=2, wg=2)
         pools = []
         for pool_ratio in self.pool_ratios:
-            tgt_hw = (round(h / pool_ratio), round(w / pool_ratio))
+            tgt_hw = (safe_round(h / pool_ratio), safe_round(w / pool_ratio))
             pool = F.adaptive_avg_pool2d(patched_glb, tgt_hw)
             pools.append(rearrange(pool, 'nl c h w -> nl c (h w)'))  # nl(4),c,hw
         # nl(4),c,nphw -> nl(4),nphw,1,c
@@ -324,7 +328,7 @@ class inf_MCRM(nn.Module):
         loc = loc * rearrange(token_attention_map, 'b c (hg h) (wg w) -> (hg wg b) c h w', hg=2, wg=2)
         pools = []
         for pool_ratio in self.pool_ratios:
-            tgt_hw = (round(h / pool_ratio), round(w / pool_ratio))
+            tgt_hw = (safe_round(h / pool_ratio), safe_round(w / pool_ratio))
             pool = F.adaptive_avg_pool2d(patched_glb, tgt_hw)
             pools.append(rearrange(pool, 'nl c h w -> nl c (h w)'))  # nl(4),c,hw
         # nl(4),c,nphw -> nl(4),nphw,1,c
